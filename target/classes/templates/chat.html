@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 
     <head>
-        <title>Chat</title>
+        <title th:text="${keskustelu}"></title>
         <meta charset="utf-8" />
     </head>
 
     <body>
-        <h1>Chat</h1>
+        <h3>Alue: <span th:text="${alue}"></span> -> <span th:text="${keskustelu}"></span></h3>
         <ul style="list-style-type: none;">
             <li th:each="viesti: ${viestit}">
                 <span th:text="${viesti}"></span> 
@@ -15,9 +15,9 @@
         </ul>
 
         <br/>
-            <form method="POST" action="/chat">
+            <form method="POST">
             Nimi:<br/><input type="text" name="nimi"/><br/>
-            Viesti:<br/><input type="text" name="viesti"/><br/>
+            Viesti:<br/><textarea name="viesti"/><br/>
             <input type="submit" value="Lisää viesti"/>
             </form>
     </body>

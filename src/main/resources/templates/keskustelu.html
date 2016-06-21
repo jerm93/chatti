@@ -4,6 +4,12 @@
     <head>
         <title th:text="${alue}"></title>
         <meta charset="utf-8" />
+        <style>
+            .gap-30 {
+                width:100%;
+                height:1000px;
+            }
+        </style>
     </head>
 
     <body>
@@ -32,12 +38,11 @@
                 </li>
             </ul>
         </div>
-        <br/>
         <b>Lisää uusi keskustelu:</b>
-        <form method="POST" action="/chat">
+        <form method="POST">
             Otsikko:<br/><input type="text" name="otsikko"/><br/>
             Käyttäjänimi:<br/><input type="text" name="nimi"/><br/>
-            Viesti:<br/><input type="text" name="viesti"/><br/>
+            Viesti:<br/><textarea name="viesti"/><br/>
             <input type="submit" value="Lisää keskustelu"/>
         </form>
     </body>

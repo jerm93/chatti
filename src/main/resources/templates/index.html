@@ -12,30 +12,29 @@
             <ul style="list-style-type: none;">
                 <li><b>Alueet</b></li>
                 <li th:each="alue: ${alueet}">
-                <span th:text="${alue}"></span> 
-            </li>
+                    <span th:text="${alue}"></span> 
+                </li>
             </ul>
         </div>
         <div style="float: left; width: 33%;">
             <ul style="list-style-type: none;">
                 <li><b>Viestien lukumäärä</b></li>
                 <li th:each="maara: ${maarat}">
-                <span th:text="${maara}"></span> 
-            </li>
+                    <span th:text="${maara}"></span> 
+                </li>
             </ul>
         </div>
         <div style="float: right; width: 33%;">
             <ul style="list-style-type: none;">
                 <li><b>Viimeisin viesti</b></li>
                 <li th:each="aika: ${ajat}">
-                <span th:text="${aika}"></span> 
-            </li>
+                    <span th:text="${aika}"></span> 
+                </li>
             </ul>
         </div>
-        <br/>
-            <form method="POST" action="/chat">
+        <form method="POST">
             Lisää uusi alue:<br/><input type="text" name="nimi"/><br/>
             <input type="submit" value="Lisää alue"/>
-            </form>
+        </form>
     </body>
 </html>

@@ -27,13 +27,6 @@ public class Main {
             return new ModelAndView(map, "index");
         }, new ThymeleafTemplateEngine());
 
-        get("/chat", (req, res) -> {
-            HashMap map = new HashMap<>();
-
-            map.put("viestit", viestiDao.findAllText(kayttajaDao));
-            return new ModelAndView(map, "chat");
-        }, new ThymeleafTemplateEngine());
-
         post("/", (req, res) -> {
 
             HashMap map = new HashMap<>();
@@ -41,7 +34,7 @@ public class Main {
             Alue alue = new Alue(nimi);
 
             alueDao.create(alue);
-            
+
             map.put("alueet", alueDao.findAllStrings(IndexParam.NIMI));
             map.put("maarat", alueDao.findAllStrings(IndexParam.LKM));
             map.put("ajat", alueDao.findAllStrings(IndexParam.PVM));
@@ -59,7 +52,7 @@ public class Main {
             map.put("ajat", keskusteluDao.findAllStrings(IndexParam.PVM, alueTunnus));
             return new ModelAndView(map, "keskustelu");
         }, new ThymeleafTemplateEngine());
-        
+
         post("/alue/:alue_tunnus", (req, res) -> {
             HashMap map = new HashMap<>();
 
@@ -72,43 +65,50 @@ public class Main {
 
             keskusteluDao.create(keskustelu);
             keskustelu = keskusteluDao.findLatest();
+
+            kayttajaDao.createIfNeeded(nimi);
             
             Viesti viesti = new Viesti(teksti, kayttajaDao.findOneByName(nimi).getId(), keskustelu.getTunnus());
             viestiDao.create(viesti);
-            
+
             map.put("alue", alueDao.findOne(alueTunnus).getNimi());
             map.put("keskustelut", keskusteluDao.findAllStrings(IndexParam.NIMI, alueTunnus));
             map.put("maarat", keskusteluDao.findAllStrings(IndexParam.LKM, alueTunnus));
             map.put("ajat", keskusteluDao.findAllStrings(IndexParam.PVM, alueTunnus));
             return new ModelAndView(map, "keskustelu");
         }, new ThymeleafTemplateEngine());
-//       
-//        post("/chat", (req, res) -> {
-//            List<Kayttaja> kayttajat = kayttajaDao.findAll();
-//            String nimi = req.queryParams("nimi");
-//            String sisalto = req.queryParams("viesti");
-//            int kayttajatunnus = 0;
-//            int viimeinen = 0;
-//            for (Kayttaja kayttaja : kayttajat) {
-//                if (kayttaja.getTunnus().equals(nimi)) {
-//                    kayttajatunnus = kayttaja.getId();
-//                }
-//                viimeinen = kayttaja.getId();
-//            }
-//            Kayttaja kayttaja = new Kayttaja(nimi);
-//            if (kayttajatunnus == 0) {
-//                kayttajatunnus = viimeinen + 1;
-//                kayttajaDao.create(kayttaja);
-//            }
-//
-//            
-//            Viesti viesti = new Viesti(sisalto, kayttajatunnus);
-//            viestiDao.create(viesti);
-//            
-//            HashMap map = new HashMap<>();
-//
-//            map.put("viestit", viestiDao.findAllText(kayttajaDao));
-//            return new ModelAndView(map, "chat");
-//        }, new ThymeleafTemplateEngine());
+
+        get("/keskustelu/:keskustelu_tunnus", (req, res) -> {
+            HashMap map = new HashMap<>();
+
+            int keskusteluTunnus = Integer.parseInt(req.params(":keskustelu_tunnus"));
+            Keskustelu keskustelu = keskusteluDao.findOne(keskusteluTunnus);
+
+            map.put("alue", alueDao.findOne(keskustelu.getAlue()).getNimi());
+            map.put("keskustelu", keskusteluDao.findOne(keskusteluTunnus).getNimi());
+
+            map.put("viestit", viestiDao.findAllText(kayttajaDao, keskusteluTunnus));
+            return new ModelAndView(map, "chat");
+        }, new ThymeleafTemplateEngine());
+
+        post("/keskustelu/:keskustelu_tunnus", (req, res) -> {
+            String nimi = req.queryParams("nimi");
+            String sisalto = req.queryParams("viesti");
+            kayttajaDao.createIfNeeded(nimi);
+
+            int keskusteluTunnus = Integer.parseInt(req.params(":keskustelu_tunnus"));
+            Keskustelu keskustelu = keskusteluDao.findOne(keskusteluTunnus);
+
+            Viesti viesti = new Viesti(sisalto, kayttajaDao.findOneByName(nimi).getId(), keskusteluTunnus);
+            viestiDao.create(viesti);
+
+            HashMap map = new HashMap<>();
+
+            map.put("alue", alueDao.findOne(keskustelu.getAlue()).getNimi());
+            map.put("keskustelu", keskusteluDao.findOne(keskusteluTunnus).getNimi());
+
+            map.put("viestit", viestiDao.findAllText(kayttajaDao, keskusteluTunnus));
+            return new ModelAndView(map, "chat");
+        }, new ThymeleafTemplateEngine());
     }
 }

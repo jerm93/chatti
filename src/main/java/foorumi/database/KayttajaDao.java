@@ -49,7 +49,7 @@ public class KayttajaDao implements Dao<Kayttaja, Integer> {
     
     public Kayttaja findOneByName(String nimi) throws SQLException {
         Connection connection = database.getConnection();
-        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Kayttaja WHERE nimi = ?");
+        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Kayttaja WHERE tunnus = ?");
         stmt.setObject(1, nimi);
 
         ResultSet rs = stmt.executeQuery();
@@ -93,6 +93,29 @@ public class KayttajaDao implements Dao<Kayttaja, Integer> {
 
         return kayttajat;
     }
+    
+    public Kayttaja findLatest() throws SQLException {
+        Connection connection = database.getConnection();
+        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Kayttaja ORDER BY id DESC LIMIT 1");
+
+        ResultSet rs = stmt.executeQuery();
+        boolean hasOne = rs.next();
+        if (!hasOne) {
+            return null;
+        }
+
+        Integer id = rs.getInt("id");
+        String nimi = rs.getString("tunnus");
+
+        Kayttaja kayttaja = new Kayttaja(nimi);
+        kayttaja.setId(id);
+
+        rs.close();
+        stmt.close();
+        connection.close();
+
+        return kayttaja;
+    }
 
     @Override
     public void delete(Integer key) throws SQLException {
@@ -113,6 +136,20 @@ public class KayttajaDao implements Dao<Kayttaja, Integer> {
         
         stmt.setObject(1, tunnus);
         stmt.execute();
+    }
+    public void createIfNeeded(String nimi) throws SQLException {
+        int kayttajatunnus = 0;
+            if (this.findAll().isEmpty()) {
+                kayttajatunnus = 1;
+
+                this.create(new Kayttaja(nimi));
+            } else if (this.findOneByName(nimi) == null) {
+                kayttajatunnus = this.findLatest().getId() + 1;
+                
+                this.create(new Kayttaja(nimi));
+            } else {
+                kayttajatunnus = this.findOneByName(nimi).getId();
+            }
     }
 
 }

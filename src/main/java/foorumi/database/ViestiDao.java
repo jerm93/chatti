@@ -84,6 +84,33 @@ public class ViestiDao implements Dao<Viesti, Integer> {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    public List<Viesti> findAllInKeskustelu(int keskusteluTunnus) throws SQLException {
+        Connection connection = database.getConnection();
+        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Viesti WHERE keskustelu = " + keskusteluTunnus);
+
+        ResultSet rs = stmt.executeQuery();
+        List<Viesti> viestit = new ArrayList<>();
+        while (rs.next()) {
+            Integer id = rs.getInt("id");
+            String sisalto = rs.getString("sisalto");
+            Integer kayttaja = rs.getInt("kayttaja");
+            long aika = rs.getLong("aika");
+            Integer keskustelu = rs.getInt("keskustelu");
+
+            Viesti viesti = new Viesti(sisalto, kayttaja, keskustelu);
+            viesti.setId(id);
+            viesti.setAika(aika);
+
+            viestit.add(viesti);
+        }
+
+        rs.close();
+        stmt.close();
+        connection.close();
+
+        return viestit;
+    }
+    
     @Override
     public void delete(Integer key) throws SQLException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -108,8 +135,8 @@ public class ViestiDao implements Dao<Viesti, Integer> {
         stmt.execute();
     }
 
-    public ArrayList<String> findAllText(KayttajaDao kayttajaDao) throws SQLException {
-        List<Viesti> viestit = this.findAll();
+    public ArrayList<String> findAllText(KayttajaDao kayttajaDao, int keskusteluTunnus) throws SQLException {
+        List<Viesti> viestit = this.findAllInKeskustelu(keskusteluTunnus);
         List<Kayttaja> kayttajat = kayttajaDao.findAll();
 
         ArrayList<String> sisalto = new ArrayList<>();

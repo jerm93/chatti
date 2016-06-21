@@ -55,8 +55,8 @@ public class KeskusteluDao implements Dao<Keskustelu, Integer> {
         ResultSet rs = stmt.executeQuery();
         List<Keskustelu> keskustelut = new ArrayList<>();
         while (rs.next()) {
-            Integer id = rs.getInt("id");
-            String nimi = rs.getString("nimi");
+            Integer id = rs.getInt("keskustelu_tunnus");
+            String nimi = rs.getString("keskustelu_nimi");
             int alue = rs.getInt("alue");
 
             Keskustelu keskustelu = new Keskustelu(nimi, alue);
@@ -84,10 +84,10 @@ public class KeskusteluDao implements Dao<Keskustelu, Integer> {
         for (int i = 1; i < keys.size(); i++) {
             muuttujat.append(", ?");
         }
-        
+
         Connection connection = database.getConnection();
         PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Keskustelu WHERE alue = (" + muuttujat + ")");
-        
+
         int laskuri = 1;
         for (int key : keys) {
             stmt.setObject(laskuri, key);
@@ -97,8 +97,8 @@ public class KeskusteluDao implements Dao<Keskustelu, Integer> {
         ResultSet rs = stmt.executeQuery();
         List<Keskustelu> keskustelut = new ArrayList<>();
         while (rs.next()) {
-            Integer id = rs.getInt("id");
-            String nimi = rs.getString("nimi");
+            Integer id = rs.getInt("keskustelu_tunnus");
+            String nimi = rs.getString("keskustelu_nimi");
             int alue = rs.getInt("alue");
 
             Keskustelu keskustelu = new Keskustelu(nimi, alue);
@@ -112,10 +112,21 @@ public class KeskusteluDao implements Dao<Keskustelu, Integer> {
 
         return keskustelut;
     }
-    
+
     public List<String> findAllStrings(IndexParam i, int alueTunnus) throws SQLException {
         Connection connection = database.getConnection();
-        PreparedStatement keskusteluHaku = connection.prepareStatement("SELECT * FROM Keskustelu WHERE alue = " + alueTunnus);
+        PreparedStatement keskusteluHaku = connection.prepareStatement(
+                "SELECT keskustelu_tunnus, keskustelu_nimi, aika "
+                        + "FROM Keskustelu, Viesti "
+                        + "WHERE alue = " + alueTunnus + " "
+                        + "AND keskustelu = keskustelu_tunnus "
+                        + "AND keskustelu_tunnus IN "
+                        + "(SELECT keskustelu_tunnus FROM Keskustelu "
+                        + "WHERE alue = " + alueTunnus + " "
+                        + "ORDER BY keskustelu_tunnus DESC "
+                        + "LIMIT 10) "
+                        + "GROUP BY keskustelu_tunnus "
+                        + "ORDER BY aika DESC");
         PreparedStatement viestiHaku = connection.prepareStatement("SELECT COUNT(id) lkm, aika FROM Viesti WHERE keskustelu = ? GROUP BY keskustelu ORDER BY aika DESC LIMIT 1");
 
         ResultSet keskustelut = keskusteluHaku.executeQuery();
@@ -130,6 +141,16 @@ public class KeskusteluDao implements Dao<Keskustelu, Integer> {
             } else {
                 viestiHaku.setObject(1, id);
                 ResultSet viestit = viestiHaku.executeQuery();
+
+                boolean hasOne = viestit.next();
+                if (!hasOne) {
+                    if (i == IndexParam.LKM) {
+                        teksti.add("0");
+                    } else {
+                        teksti.add("Ei viestejä");
+                    }
+                    continue;
+                }
 
                 int lkm = viestit.getInt("lkm");
                 long aika = viestit.getLong("aika");
@@ -152,7 +173,7 @@ public class KeskusteluDao implements Dao<Keskustelu, Integer> {
 
         return teksti;
     }
-    
+
     public Keskustelu findLatest() throws SQLException {
         Connection connection = database.getConnection();
         PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Keskustelu ORDER BY keskustelu_tunnus DESC LIMIT 1");
@@ -185,7 +206,7 @@ public class KeskusteluDao implements Dao<Keskustelu, Integer> {
     @Override
     public void create(Keskustelu type) throws SQLException {
         Connection connection = database.getConnection();
-        PreparedStatement stmt = connection.prepareStatement("INSERT INTO Keskustelu(nimi, alue) Values(?, ?)");
+        PreparedStatement stmt = connection.prepareStatement("INSERT INTO Keskustelu(keskustelu_nimi, alue) Values(?, ?)");
 
         String nimi = type.getNimi();
         int alue = type.getAlue();

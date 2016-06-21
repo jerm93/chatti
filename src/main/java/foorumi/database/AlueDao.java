@@ -58,8 +58,8 @@ public class AlueDao implements Dao<Alue, Integer> {
         ResultSet rs = stmt.executeQuery();
         List<Alue> alueet = new ArrayList<>();
         while (rs.next()) {
-            Integer id = rs.getInt("id");
-            String nimi = rs.getString("nimi");
+            Integer id = rs.getInt("alue_tunnus");
+            String nimi = rs.getString("alue_nimi");
 
             Alue alue = new Alue(nimi);
             alue.setTunnus(id);
@@ -86,7 +86,7 @@ public class AlueDao implements Dao<Alue, Integer> {
     @Override
     public void create(Alue type) throws SQLException {
         Connection connection = database.getConnection();
-        PreparedStatement stmt = connection.prepareStatement("INSERT INTO Alue(nimi) Values(?)");
+        PreparedStatement stmt = connection.prepareStatement("INSERT INTO Alue(alue_nimi) Values(?)");
 
         String nimi = type.getNimi();
 
@@ -96,7 +96,7 @@ public class AlueDao implements Dao<Alue, Integer> {
 
     public List<String> findAllStrings(IndexParam i) throws SQLException {
         Connection connection = database.getConnection();
-        PreparedStatement alueHaku = connection.prepareStatement("SELECT * FROM Alue");
+        PreparedStatement alueHaku = connection.prepareStatement("SELECT * FROM Alue ORDER BY alue_nimi");
         PreparedStatement viestiHaku = connection.prepareStatement("SELECT COUNT(id) lkm, aika FROM Viesti, Keskustelu WHERE keskustelu = keskustelu_tunnus AND alue = ?  GROUP BY alue ORDER BY aika DESC LIMIT 1");
 
         ResultSet alueet = alueHaku.executeQuery();
@@ -111,6 +111,16 @@ public class AlueDao implements Dao<Alue, Integer> {
             } else {
                 viestiHaku.setObject(1, id);
                 ResultSet viestit = viestiHaku.executeQuery();
+
+                boolean hasOne = viestit.next();
+                if (!hasOne) {
+                    if (i == IndexParam.LKM) {
+                        teksti.add("0");
+                    } else {
+                        teksti.add("Ei viestejä");
+                    }
+                    continue;
+                }
 
                 int lkm = viestit.getInt("lkm");
                 long aika = viestit.getLong("aika");
