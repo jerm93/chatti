@@ -1,0 +1,44 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+
+    <head>
+        <title th:text="${alue}"></title>
+        <meta charset="utf-8" />
+    </head>
+
+    <body>
+        <h3 th:text="${alue}"></h3>
+        <div style="float: left; width: 33%;">
+            <ul style="list-style-type: none;">
+                <li><b>Alue: <span th:text="${alue}"></span> </b></li>
+                <li th:each="keskustelu: ${keskustelut}"> <a href="chat.html">
+                        <span th:text="${keskustelu}"></span> 
+                    </a></li>
+            </ul>
+        </div>
+        <div style="float: left; width: 33%;">
+            <ul style="list-style-type: none;">
+                <li><b>Viestejä</b></li>
+                <li th:each="maara: ${maarat}">
+                    <span th:text="${maara}"></span> 
+                </li>
+            </ul>
+        </div>
+        <div style="float: right; width: 33%;">
+            <ul style="list-style-type: none;">
+                <li><b>Viimeisin viesti</b></li>
+                <li th:each="aika: ${ajat}">
+                    <span th:text="${aika}"></span> 
+                </li>
+            </ul>
+        </div>
+        <br/>
+        <b>Lisää uusi keskustelu:</b>
+        <form method="POST" action="/chat">
+            Otsikko:<br/><input type="text" name="otsikko"/><br/>
+            Käyttäjänimi:<br/><input type="text" name="nimi"/><br/>
+            Viesti:<br/><input type="text" name="viesti"/><br/>
+            <input type="submit" value="Lisää keskustelu"/>
+        </form>
+    </body>
+</html>

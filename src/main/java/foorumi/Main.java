@@ -18,7 +18,7 @@ public class Main {
         AlueDao alueDao = new AlueDao(database);
         KeskusteluDao keskusteluDao = new KeskusteluDao(database);
 
-        get("/index", (req, res) -> {
+        get("/", (req, res) -> {
             HashMap map = new HashMap<>();
 
             map.put("alueet", alueDao.findAllStrings(IndexParam.NIMI));
@@ -26,7 +26,7 @@ public class Main {
             map.put("ajat", alueDao.findAllStrings(IndexParam.PVM));
             return new ModelAndView(map, "index");
         }, new ThymeleafTemplateEngine());
-        
+
         get("/chat", (req, res) -> {
             HashMap map = new HashMap<>();
 
@@ -34,6 +34,54 @@ public class Main {
             return new ModelAndView(map, "chat");
         }, new ThymeleafTemplateEngine());
 
+        post("/", (req, res) -> {
+
+            HashMap map = new HashMap<>();
+            String nimi = req.queryParams("nimi");
+            Alue alue = new Alue(nimi);
+
+            alueDao.create(alue);
+            
+            map.put("alueet", alueDao.findAllStrings(IndexParam.NIMI));
+            map.put("maarat", alueDao.findAllStrings(IndexParam.LKM));
+            map.put("ajat", alueDao.findAllStrings(IndexParam.PVM));
+            return new ModelAndView(map, "index");
+        }, new ThymeleafTemplateEngine());
+
+        get("/alue/:alue_tunnus", (req, res) -> {
+            HashMap map = new HashMap<>();
+
+            int alueTunnus = Integer.parseInt(req.params(":alue_tunnus"));
+
+            map.put("alue", alueDao.findOne(alueTunnus).getNimi());
+            map.put("keskustelut", keskusteluDao.findAllStrings(IndexParam.NIMI, alueTunnus));
+            map.put("maarat", keskusteluDao.findAllStrings(IndexParam.LKM, alueTunnus));
+            map.put("ajat", keskusteluDao.findAllStrings(IndexParam.PVM, alueTunnus));
+            return new ModelAndView(map, "keskustelu");
+        }, new ThymeleafTemplateEngine());
+        
+        post("/alue/:alue_tunnus", (req, res) -> {
+            HashMap map = new HashMap<>();
+
+            int alueTunnus = Integer.parseInt(req.params(":alue_tunnus"));
+
+            String otsikko = req.queryParams("otsikko");
+            String nimi = req.queryParams("nimi");
+            String teksti = req.queryParams("viesti");
+            Keskustelu keskustelu = new Keskustelu(otsikko, alueTunnus);
+
+            keskusteluDao.create(keskustelu);
+            keskustelu = keskusteluDao.findLatest();
+            
+            Viesti viesti = new Viesti(teksti, kayttajaDao.findOneByName(nimi).getId(), keskustelu.getTunnus());
+            viestiDao.create(viesti);
+            
+            map.put("alue", alueDao.findOne(alueTunnus).getNimi());
+            map.put("keskustelut", keskusteluDao.findAllStrings(IndexParam.NIMI, alueTunnus));
+            map.put("maarat", keskusteluDao.findAllStrings(IndexParam.LKM, alueTunnus));
+            map.put("ajat", keskusteluDao.findAllStrings(IndexParam.PVM, alueTunnus));
+            return new ModelAndView(map, "keskustelu");
+        }, new ThymeleafTemplateEngine());
 //       
 //        post("/chat", (req, res) -> {
 //            List<Kayttaja> kayttajat = kayttajaDao.findAll();

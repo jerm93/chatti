@@ -28,7 +28,7 @@ public class AlueDao implements Dao<Alue, Integer> {
     @Override
     public Alue findOne(Integer key) throws SQLException {
         Connection connection = database.getConnection();
-        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Alue WHERE id = ?");
+        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Alue WHERE alue_tunnus = ?");
         stmt.setObject(1, key);
 
         ResultSet rs = stmt.executeQuery();
@@ -37,8 +37,8 @@ public class AlueDao implements Dao<Alue, Integer> {
             return null;
         }
 
-        Integer id = rs.getInt("id");
-        String nimi = rs.getString("nimi");
+        Integer id = rs.getInt("alue_tunnus");
+        String nimi = rs.getString("alue_nimi");
 
         Alue alue = new Alue(nimi);
         alue.setTunnus(id);

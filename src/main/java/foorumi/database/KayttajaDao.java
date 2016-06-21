@@ -46,6 +46,29 @@ public class KayttajaDao implements Dao<Kayttaja, Integer> {
 
         return o;
     }
+    
+    public Kayttaja findOneByName(String nimi) throws SQLException {
+        Connection connection = database.getConnection();
+        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Kayttaja WHERE nimi = ?");
+        stmt.setObject(1, nimi);
+
+        ResultSet rs = stmt.executeQuery();
+        boolean hasOne = rs.next();
+        if (!hasOne) {
+            return null;
+        }
+
+        Integer id = rs.getInt("id");
+
+        Kayttaja o = new Kayttaja(nimi);
+        o.setId(id);
+        
+        rs.close();
+        stmt.close();
+        connection.close();
+
+        return o;
+    }
 
     @Override
     public List<Kayttaja> findAll() throws SQLException {
